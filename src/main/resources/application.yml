@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: Rinha
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: rinha
+      username: rinha
+      password: rinha
+      authentication-database: admin
+
+server:
+  port: 9999
