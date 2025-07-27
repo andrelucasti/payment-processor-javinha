@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import reactor.core.publisher.Mono;
-
 record CreatePaymentRequest(UUID correlationId, BigDecimal amount) {
 }
 
@@ -26,9 +24,10 @@ public class PaymentController {
     }
     
     @PostMapping
-    public Mono<ResponseEntity<Void>> createPayment(@RequestBody CreatePaymentRequest request) {
-        return createPayment.execute(request.correlationId(), request.amount())
-        .map(_ -> ResponseEntity.status(HttpStatus.CREATED).build());
+    public ResponseEntity<Void> createPayment(@RequestBody CreatePaymentRequest request) {
+        createPayment.execute(request.correlationId(), request.amount());
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
 }

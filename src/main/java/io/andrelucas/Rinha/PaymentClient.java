@@ -1,16 +1,17 @@
 package io.andrelucas.Rinha;
 
 
+import java.math.BigDecimal;
 import java.time.Instant;
-
-import io.andrelucas.Rinha.payment.Payment;
+import java.util.UUID;
 import io.andrelucas.Rinha.paymentsummary.PaymentIntegrationType;
-import reactor.core.publisher.Mono;
+
 
 public interface PaymentClient {
 
+    public record PaymentRequest(UUID correlationId, BigDecimal amount, Instant requestedAt) {}
     public record PaymentResult(PaymentIntegrationType integrationType, Instant requestedAt) {}
 
-    Mono<PaymentResult> processPayment(Payment payment);
+    PaymentResult processPayment(PaymentRequest payment);
 
 }

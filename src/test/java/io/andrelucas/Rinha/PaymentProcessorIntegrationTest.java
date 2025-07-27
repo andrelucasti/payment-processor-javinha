@@ -1,26 +1,24 @@
 package io.andrelucas.Rinha;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import io.andrelucas.Rinha.payment.CreatePayment;
-import io.andrelucas.Rinha.payment.MongoPaymentRepository;
 import io.andrelucas.Rinha.payment.Payment;
 import io.andrelucas.Rinha.payment.PaymentProcessor;
-import io.andrelucas.Rinha.payment.PaymentStatus;
-import io.andrelucas.Rinha.paymentsummary.MongoPaymentSummaryRepository;
 import io.andrelucas.Rinha.paymentsummary.PaymentIntegrationType;
-import reactor.core.publisher.Mono;
 
 @SpringBootTest
 public class PaymentProcessorIntegrationTest {
@@ -29,38 +27,47 @@ public class PaymentProcessorIntegrationTest {
     private PaymentProcessor paymentProcessor;
 
     @Autowired
+    private RedisTemplate<String, String> paymentTemplate;
+
+    @Autowired
     private CreatePayment createPayment;
-
-    @Autowired
-    private MongoPaymentRepository paymentRepository;
-
-    @Autowired
-    private MongoPaymentSummaryRepository paymentSummaryRepository;
 
     @MockitoBean(name = "paymentClient")
     private PaymentClient paymentClient;
 
+    @BeforeEach
+    public void setUp() {
+       paymentTemplate.delete("payments_default:count");
+       paymentTemplate.delete("payments_default:total");
+       paymentTemplate.delete("payments_fallback:count");
+       paymentTemplate.delete("payments_fallback:total");
+       paymentTemplate.delete("payments_stream");
+       paymentTemplate.delete("payments_group");
+
+       paymentTemplate.opsForStream().createGroup("payments_stream", "payments_group");
+    }
+
     @Test
     void shouldProcessPayment() {
-        when(paymentClient.processPayment(any(Payment.class)))
-        .thenReturn(Mono.just(new PaymentClient.PaymentResult(PaymentIntegrationType.DEFAULT, Instant.now())));
+       
+        Mockito.when(paymentClient.processPayment(any(PaymentClient.PaymentRequest.class))).thenReturn(new PaymentClient.PaymentResult(PaymentIntegrationType.DEFAULT, Instant.now()));
+        createPayment.execute(UUID.randomUUID(), BigDecimal.valueOf(100));
 
-        createPayment.execute(UUID.randomUUID(), BigDecimal.valueOf(100)).block();
+        paymentProcessor.processPayments(Payment.create(UUID.randomUUID(), BigDecimal.valueOf(100)));
 
-        paymentProcessor.processPayments();
+        final var paymentDefaultCount = paymentTemplate.opsForValue().get("payments_default:count");    
+        final var paymentDefaultTotal = paymentTemplate.opsForValue().get("payments_default:total");
+        final var paymentFallbackCount = paymentTemplate.opsForValue().get("payments_fallback:count");
+        final var paymentFallbackTotal = paymentTemplate.opsForValue().get("payments_fallback:total");
 
-        final var payment = paymentRepository.findAll().blockFirst();
+        Assertions.assertThat(paymentDefaultCount).isNotNull();
+        Assertions.assertThat(paymentDefaultTotal).isNotNull();
+        Assertions.assertThat(paymentFallbackCount).isNull();
+        Assertions.assertThat(paymentFallbackTotal).isNull();
 
-        Assertions.assertThat(payment).isNotNull();
-        Assertions.assertThat(payment.status()).isEqualTo(PaymentStatus.APPROVED);
-        Assertions.assertThat(payment.amount()).isEqualTo(BigDecimal.valueOf(100));
+        Assertions.assertThat(paymentDefaultCount).isEqualTo("1");
+        Assertions.assertThat(paymentDefaultTotal).isEqualTo("100");
 
-        final var paymentSummary = paymentSummaryRepository.findAll().blockFirst();
-        Assertions.assertThat(paymentSummary).isNotNull();
-        Assertions.assertThat(paymentSummary.correlationId()).isEqualTo(payment.correlationId());
-        Assertions.assertThat(paymentSummary.amount()).isEqualTo(payment.amount());
-        Assertions.assertThat(paymentSummary.integrationType()).isEqualTo(PaymentIntegrationType.DEFAULT);
-        Assertions.assertThat(paymentSummary.requestedAt()).isBefore(Instant.now());
     }
     
 }
