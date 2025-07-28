@@ -1,0 +1,22 @@
+meta {
+  name: New Payment
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:9999/payments
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "correlationId": "B9BD069D-5801-41BE-802C-0898087E0299",
+      "amount": 20
+  }
+}
+
+settings {
+  encodeUrl: true
+}

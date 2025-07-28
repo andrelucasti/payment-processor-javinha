@@ -19,6 +19,7 @@ import io.andrelucas.Rinha.payment.CreatePayment;
 import io.andrelucas.Rinha.payment.Payment;
 import io.andrelucas.Rinha.payment.PaymentProcessor;
 import io.andrelucas.Rinha.paymentsummary.PaymentIntegrationType;
+import reactor.core.publisher.Mono;
 
 @SpringBootTest
 public class PaymentProcessorIntegrationTest {
@@ -50,7 +51,7 @@ public class PaymentProcessorIntegrationTest {
     @Test
     void shouldProcessPayment() {
        
-        Mockito.when(paymentClient.processPayment(any(PaymentClient.PaymentRequest.class))).thenReturn(new PaymentClient.PaymentResult(PaymentIntegrationType.DEFAULT, Instant.now()));
+        Mockito.when(paymentClient.processPayment(any(PaymentClient.PaymentRequest.class))).thenReturn(Mono.just(new PaymentClient.PaymentResult(PaymentIntegrationType.DEFAULT, Instant.now())));
         createPayment.execute(UUID.randomUUID(), BigDecimal.valueOf(100));
 
         paymentProcessor.processPayments(Payment.create(UUID.randomUUID(), BigDecimal.valueOf(100)));
