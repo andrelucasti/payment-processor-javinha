@@ -1,14 +1,12 @@
-spring:
-  application:
-    name: Rinha
-  data:
-    mongodb:
-      host: localhost
-      port: 27017
-      database: rinha
-      username: rinha
-      password: rinha
-      authentication-database: admin
-
 server:
-  port: 9999
+  port: ${PORT:9999}
+
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+
+payment-processor:
+  default:
+    base-url: ${PAYMENT_PROCESSOR_DEFAULT_BASE_URL:http://localhost:8001}
+  fallback:
+    base-url: ${PAYMENT_PROCESSOR_FALLBACK_BASE_URL:http://localhost:8002}

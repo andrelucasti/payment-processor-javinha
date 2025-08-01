@@ -1,4 +1,36 @@
 services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api01
+      - api02
+    ports:
+      - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: "50MB"
+  api01: &api 
+    image: andrelucastic/rinhabackend2025:1.0
+    environment:
+      PAYMENT_PROCESSOR_DEFAULT_BASE_URL: http://payment-processor-default:8080
+      PAYMENT_PROCESSOR_FALLBACK_BASE_URL: http://payment-processor-fallback:8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    networks:
+      - rinha-network
+    ports:
+      - "8080:8080"
+    container_name: rinha-api
+    restart: unless-stopped
+
+  api02:
+    # Essa sintaxe reusa o que foi declarado em 'api01'.
+    <<: *api
+    hostname: api02
   redis:
     image: redis:latest
     networks:
