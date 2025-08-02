@@ -8,31 +8,35 @@ services:
       - api02
     ports:
       - "9999:9999"
+    networks:
+      - rinha-network
     deploy:
       resources:
         limits:
           cpus: "0.5"
           memory: "50MB"
   api01: &api 
-    image: ghcr.io/andrelucasti/rinha-backend-2025:latest
+    hostname: api01
+    container_name: payments-01
+    #image: ghcr.io/andrelucasti/rinha-backend-2025:latest
+    image: andre-test:latest
     environment:
       PAYMENT_PROCESSOR_DEFAULT_BASE_URL: http://payment-processor-default:8080
       PAYMENT_PROCESSOR_FALLBACK_BASE_URL: http://payment-processor-fallback:8080
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      PORT: 8080
     networks:
       - rinha-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "0.25"
-          memory: "50MB"
+    depends_on:
+      - redis
 
   api02:
     # Essa sintaxe reusa o que foi declarado em 'api01'.
     <<: *api
     hostname: api02
+    container_name: payments-02
   redis:
     image: redis:latest
     networks:
@@ -55,3 +59,5 @@ services:
 networks:
   rinha-network:
     driver: bridge
+  payment-processor:
+    external: true
