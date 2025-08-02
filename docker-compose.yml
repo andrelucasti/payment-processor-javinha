@@ -14,7 +14,7 @@ services:
           cpus: "0.1"
           memory: "50MB"
   api01: &api 
-    image: andrelucastic/rinhabackend2025:1.0
+    image: ghcr.io/andrelucasti/rinhabackend2025:latest
     environment:
       PAYMENT_PROCESSOR_DEFAULT_BASE_URL: http://payment-processor-default:8080
       PAYMENT_PROCESSOR_FALLBACK_BASE_URL: http://payment-processor-fallback:8080
