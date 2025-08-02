@@ -1,8 +1,6 @@
 package io.andrelucas.Rinha.payment;
 
-import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -19,20 +17,12 @@ public class PaymentProcessor {
 
     private final PaymentClient paymentClient;
     private final RedisTemplate<String, String> paymentTemplate;
+    private final ObjectMapper objectMapper;
 
-    record PaymentScore(String correlationId, double amount) {
-        public String toJson() {
-            try {
-                return new ObjectMapper().writeValueAsString(this);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    public PaymentProcessor(final PaymentClient paymentClient, final RedisTemplate<String, String> paymentTemplate) {
+    public PaymentProcessor(final PaymentClient paymentClient, final RedisTemplate<String, String> paymentTemplate, final ObjectMapper objectMapper) {
         this.paymentClient = paymentClient;
         this.paymentTemplate = paymentTemplate;
+        this.objectMapper = objectMapper;
     }
 
     public void processPayments(final Payment payment) {
@@ -45,7 +35,7 @@ public class PaymentProcessor {
                 final var paymentScore = new PaymentScore(correlationId, payment.amount().doubleValue());
 
                 if (paymentResult.integrationType() == PaymentIntegrationType.DEFAULT) {
-                    paymentTemplate.opsForZSet().add("payments_default:sorted", paymentScore.toJson(), requestedAt.toEpochMilli());
+                    paymentTemplate.opsForZSet().add("payments_default:sorted", toJson(paymentScore), requestedAt.toEpochMilli());
                     paymentTemplate.opsForValue().increment("payments_default:count", 1);
                     paymentTemplate.opsForValue().increment("payments_default:total", payment.amount().doubleValue());
                 } else {
@@ -56,5 +46,11 @@ public class PaymentProcessor {
             });
     }
 
-
+    private String toJson(final PaymentScore obj) {
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
