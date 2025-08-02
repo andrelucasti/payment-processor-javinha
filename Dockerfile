@@ -1,8 +1,8 @@
-FROM gradle:8-jdk-21-and-24-alpine as builder
+FROM gradle:8.5-jdk24-alpine as builder
 COPY ./ ./
 RUN gradle clean bootJar
 
-FROM eclipse-temurin:24-jdk-alpine
+FROM eclipse-temurin:24-jre-alpine 
 
 WORKDIR /usr/src/app
 
