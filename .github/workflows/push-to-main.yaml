@@ -20,6 +20,7 @@ jobs:
   
 
   build-and-push:
+    needs: tag
     name: Build and Push
     runs-on: ubuntu-latest
     steps:
