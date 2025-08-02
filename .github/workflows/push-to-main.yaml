@@ -61,7 +61,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/andrelucasti/rinha-backend-2025:${{ steps.get_tag.outputs.tag }}
+            ghcr.io/andrelucasti/rinha-backend-2025:${{ steps.last-tag.outputs.tag }}
             ghcr.io/andrelucasti/rinha-backend-2025:latest
 
       
