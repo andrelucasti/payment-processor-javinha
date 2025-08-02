@@ -3,6 +3,7 @@ on:
     branches:
       - main
 
+# Adicione permissões explícitas para o workflow
 permissions:
   contents: read
   packages: write
@@ -16,16 +17,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Generate tag
-        id: semantic
         uses: go-semantic-release/action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    outputs:
-      new_tag: ${{ steps.semantic.outputs.new_release_tag }}
       
   
 
@@ -66,7 +61,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/andrelucasti/rinha-backend-2025:${{ needs.tag.outputs.new_tag }}
+            ghcr.io/andrelucasti/rinha-backend-2025:${{ steps.last_tag.outputs.tag }}
             ghcr.io/andrelucasti/rinha-backend-2025:latest
 
       
