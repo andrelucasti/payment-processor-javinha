@@ -3,7 +3,6 @@ on:
     branches:
       - main
 
-# Adicione permissões explícitas para o workflow
 permissions:
   contents: read
   packages: write
@@ -14,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    outputs:
-      new_tag: ${{ steps.semantic.outputs.new_release_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,6 +24,8 @@ jobs:
         uses: go-semantic-release/action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      new_tag: ${{ steps.semantic.outputs.new_release_tag }}
       
   
 
@@ -50,6 +49,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Last tag
+        id: last_tag
+        run: |
+          git fetch --tags
+          TAG=$(git describe --tags --abbrev=0)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Build and push
         uses: docker/build-push-action@v5.1.0
