@@ -14,10 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      new_tag: ${{ steps.sematic.outputs.new_release_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Generate tag
+        id: semantic
         uses: go-semantic-release/action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,24 +50,17 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Last tag
-        id: last-tag
-        run: |
-          git fetch --tags
-          TAG=$(git describe --tags --abbrev=0)
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Build and push
         uses: docker/build-push-action@v5.1.0
         with:
           context: .
-          file: Dockerfile
+          file: ./Dockerfile
           target: prod
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/andrelucasti/rinha-backend-2025:${{ steps.last-tag.outputs.tag }}
+            ghcr.io/andrelucasti/rinha-backend-2025:${{ needs.tag.outputs.new_tag }}
             ghcr.io/andrelucasti/rinha-backend-2025:latest
 
       
