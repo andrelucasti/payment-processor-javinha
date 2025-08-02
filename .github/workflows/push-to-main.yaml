@@ -15,7 +15,7 @@ jobs:
     permissions:
       contents: write
     outputs:
-      new_tag: ${{ steps.sematic.outputs.new_release_tag }}
+      new_tag: ${{ steps.semantic.outputs.new_release_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
