@@ -3,12 +3,17 @@ on:
     branches:
       - main
 
-
+# Adicione permissões explícitas para o workflow
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   tag:
     name: Tag Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
