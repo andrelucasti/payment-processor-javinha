@@ -1,6 +1,16 @@
 server:
   port: ${PORT:9999}
 
+spring:
+  main:
+    banner-mode: off
+  jmx:
+    enabled: false
+
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+
+
 redis:
   host: ${REDIS_HOST:localhost}
   port: ${REDIS_PORT:6379}

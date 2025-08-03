@@ -1,13 +1,13 @@
-FROM gradle:jdk24-ubi-minimal as builder
+FROM gradle:jdk24-graal as builder
 COPY ./ ./
-RUN gradle clean bootJar
+RUN gradle nativeCompile
 
-FROM eclipse-temurin:24.0.1_9-jre-ubi9-minimal
+FROM ghcr.io/graalvm/graalvm-ce:24.0.1-java24
 
 WORKDIR /usr/src/app
 
-COPY --from=builder /home/gradle/build/libs/*.jar application.jar
+COPY --from=builder /home/gradle/build/native/nativeCompile/rinha application
 
 EXPOSE 8080
 
-ENTRYPOINT java -jar "application.jar"
+ENTRYPOINT ["/usr/src/app/application"]

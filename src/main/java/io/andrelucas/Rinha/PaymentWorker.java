@@ -14,9 +14,6 @@ import org.springframework.stereotype.Service;
 import io.andrelucas.Rinha.payment.Payment;
 import io.andrelucas.Rinha.payment.PaymentProcessor;
 
-
-
-
 @Service
 public class PaymentWorker {
     private final Logger logger = Logger.getLogger(PaymentWorker.class.getName());
@@ -54,9 +51,9 @@ public class PaymentWorker {
             final var payment = Payment.from(r.getValue());
             paymentProcessor.processPayments(payment);
             paymentTemplate.opsForStream().acknowledge(STREAM, GROUP, r.getId());
+            paymentTemplate.opsForStream().delete(STREAM, r.getId());
 
             logger.info("Payment processed: " + payment);
-            
         });
     }
 }

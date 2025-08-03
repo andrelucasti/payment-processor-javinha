@@ -36,12 +36,8 @@ public class PaymentProcessor {
 
                 if (paymentResult.integrationType() == PaymentIntegrationType.DEFAULT) {
                     paymentTemplate.opsForZSet().add("payments_default:sorted", toJson(paymentScore), requestedAt.toEpochMilli());
-                    paymentTemplate.opsForValue().increment("payments_default:count", 1);
-                    paymentTemplate.opsForValue().increment("payments_default:total", payment.amount().doubleValue());
                 } else {
-                    paymentTemplate.opsForZSet().add("payments_fallback:sorted", correlationId, requestedAt.toEpochMilli());
-                    paymentTemplate.opsForValue().increment("payments_fallback:count", 1);
-                    paymentTemplate.opsForValue().increment("payments_fallback:total", payment.amount().doubleValue());
+                    paymentTemplate.opsForZSet().add("payments_fallback:sorted", toJson(paymentScore), requestedAt.toEpochMilli());
                 }
             });
     }

@@ -13,21 +13,31 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "0.25"
           memory: "50MB"
   api01: &api 
     hostname: api01
     container_name: payments-01
     #image: ghcr.io/andrelucasti/rinha-backend-2025:latest
     image: andre-test:latest
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "1GB"
+        reservations:
+          memory: "512MB"
     environment:
       PAYMENT_PROCESSOR_DEFAULT_BASE_URL: http://payment-processor-default:8080
       PAYMENT_PROCESSOR_FALLBACK_BASE_URL: http://payment-processor-fallback:8080
       REDIS_HOST: redis
       REDIS_PORT: 6379
       PORT: 8080
+      # JVM Configuration
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     networks:
       - rinha-network
+      - payment-processor
     restart: unless-stopped
     depends_on:
       - redis
@@ -54,8 +64,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "200MB"
+          cpus: "0.25"
+          memory: "100MB"
 networks:
   rinha-network:
     driver: bridge
